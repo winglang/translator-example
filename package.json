@@ -6,6 +6,10 @@
   "license": "MIT",
   "wing": true,
   "dependencies": {
+    "@winglang/platform-awscdk": "^0.74.9",
     "@winglibs/openai": "^0.0.5"
+  },
+  "devDependencies": {
+    "aws-cdk": "^2.142.1"
   }
 }

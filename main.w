@@ -9,7 +9,8 @@ bring "./translator.w" as t;
 let sourceLanguage = "English";
 
 let languages = [
-  "French"
+  "French",
+  "Hebrew"
 ];
 
 let modelId = "gpt-4o";
@@ -65,6 +66,7 @@ class Translators {
 }
 
 let translators = new Translators();
+let namer = new n.Namer(model: model);
 
 input.onCreate(inflight (key) => {
   let data = input.get(key);
@@ -113,14 +115,28 @@ class Api {
           status: 404
         };
       }   
-    });    
+    });
+    
+    api.post("/docs", inflight (req) => {
+      if let body = req.body {
+        let filename = namer.makeFileName(body);
+        input.put(filename, body);
+        return {
+          body: "Document saved as {filename}",
+        };
+      } else {
+        return {
+          status: 400,
+          body: "No content provided"
+        };
+      }
+    });
   }
 }
 
 /// A bunch of backoffice tools
 class Tools {
   new() {
-    let namer = new n.Namer(model: model);
 
     new cloud.Function(inflight (content) => {
       let c = content ?? "";
