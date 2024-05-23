@@ -21,9 +21,11 @@ nodeof(oaik).hidden = true;
 
 let input = new cloud.Bucket() as "Input Bucket";
 
+/// Manages multiple translators
 class Translators {
   translators: MutMap<inflight (str, str): void>;
   readers: MutMap<inflight (str): str>;
+
   new() {
     this.translators = {};
     this.readers = {};
@@ -35,7 +37,7 @@ class Translators {
     for language in languages {
       let translator = new t.Translator(fromLanguage: sourceLanguage, toLanguage: language, model: model) as "{language} Translator";
       this.translators.set(language, inflight (k, v) => {
-        log("translating {k} to {language}...");
+        log("Translating {k} to {language}...");
         translator.translate(k, v);
       });
     
@@ -45,12 +47,14 @@ class Translators {
     }
   }
 
+  /// Translate a document to all supported languages
   pub inflight translateAll(key: str, data: str) {
     for t in this.translators.values() {
       t(key, data);
     }
   }
 
+  /// Read the translation of a document in a given language
   pub inflight read(key: str, lang: str): str {
     if let reader = this.readers.tryGet(lang) {
       return reader(key);
@@ -113,6 +117,7 @@ class Api {
   }
 }
 
+/// A bunch of backoffice tools
 class Tools {
   new() {
     let namer = new n.Namer(model: model);
