@@ -3,6 +3,7 @@ bring expect;
 bring openai;
 bring ui;
 bring util;
+bring "./namer.w" as n;
 
 let sourceLanguage = "English";
 
@@ -13,6 +14,7 @@ let languages = [
   "Klingon",
 ];
 
+let modelId = "gpt-4o";
 let oaik = new cloud.Secret(name: "OPENAI_KEY") as "openai_key";
 let model = new openai.OpenAI(apiKeySecret: oaik) as "gpt_4o";
 
@@ -20,35 +22,6 @@ let model = new openai.OpenAI(apiKeySecret: oaik) as "gpt_4o";
 struct Job {
   key: str;
   data: str;
-}
-
-struct NamerProps {
-  model: openai.OpenAI;
-}
-
-class Namer {
-  props: NamerProps;
-
-  new(props: NamerProps) {
-    this.props = props;
-  }
-
-  /// Generate a file name from the provided content
-  pub inflight makeFileName(content: str): str {
-    let prompt = {
-      make_filename: {
-        content: content,
-        all_lowercase: true,
-        word_delimiter: "-",
-        ext: ".txt",
-        output_min_length: 5,
-        output_max_length: 20,
-        output_allowed_chars: "a-z0-9\-"
-      }
-    };
-
-    return this.props.model.createCompletion(Json.stringify(prompt));
-  }
 }
 
 struct TranslatorProps {
@@ -76,10 +49,10 @@ class Translator {
           from_language: opts.fromLanguage,
           to_language: opts.toLanguage,
           content_to_translate: job.data,
-        }
+        },
       };
 
-      let result = this.model.createCompletion(Json.stringify(prompt), model: "gpt-4o");
+      let result = this.model.createCompletion(Json.stringify(prompt), model: modelId);
       this.output.put(job.key, result);
       log("translated {job.key} to {this.opts.toLanguage}");
     });
@@ -190,7 +163,7 @@ class Api {
 
 class Tools {
   new() {
-    let namer = new Namer(model: model);
+    let namer = new n.Namer(model: model);
 
     new cloud.Function(inflight (content) => {
       let c = content ?? "";
@@ -216,18 +189,20 @@ class Tools {
 }
 
 struct FrontendProps {
-  backend: str;
+  backend: Api;
 }
 
 class Frontend {
   new(props: FrontendProps) {
     let website = new cloud.Website(path: "./public");
     website.addJson("config.json", {
-      backend: props.backend
+      backend: props.backend.url
     });
+
+    nodeof(website).addConnection(source: website, target: props.backend, name: "backend");
   }
 }
 
 let api = new Api();
 new Tools();
-new Frontend(backend: api.url);
+new Frontend(backend: api);
