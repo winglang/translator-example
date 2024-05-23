@@ -1,5 +1,6 @@
 bring openai;
 bring cloud;
+bring ui;
 
 struct Job {
   key: str;
@@ -21,8 +22,9 @@ pub class Translator {
   new(opts: TranslatorProps) {
     this.opts = opts;
     this.model = opts.model;
-    this.output = new cloud.Bucket();
+    this.output = new cloud.Bucket() as "Output Bucket";
     this.queue = new cloud.Queue();
+
     this.queue.setConsumer(inflight (message) => {
       let job = Job.parseJson(message);
 
@@ -40,6 +42,8 @@ pub class Translator {
     });
 
     nodeof(this).title = "{opts.fromLanguage} => {opts.toLanguage} Translator";
+    new ui.ValueField("Source Language", opts.fromLanguage) as "source field";
+    new ui.ValueField("Target Language", opts.toLanguage) as "target field";
   }
 
   pub inflight translate(key: str, data: str) {

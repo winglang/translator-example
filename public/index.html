@@ -50,7 +50,7 @@
         const tr = document.createElement("tr");
         for (const l of langs) {
           const td = document.createElement("td");
-          td.innerHTML = `<a href='${baseUrl}/docs/${doc}?language=${l}'>${doc}</a>`;
+          td.innerHTML = `<a target="_blank" href='${baseUrl}/docs/${doc}?language=${l}'>${doc}</a>`;
           tr.appendChild(td);
         }
 

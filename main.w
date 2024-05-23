@@ -16,10 +16,13 @@ let languages = [
 ];
 
 let modelId = "gpt-4o";
-let oaik = new cloud.Secret(name: "OPENAI_KEY") as "openai_key";
-let model = new openai.OpenAI(apiKeySecret: oaik) as "gpt_4o";
+let oaik = new cloud.Secret(name: "OPENAI_KEY") as "OpenAI API Key";
+let model = new openai.OpenAI(apiKeySecret: oaik) as "AI Model";
 
-let input = new cloud.Bucket() as "input_bucket";
+nodeof(model).hidden = true;
+nodeof(oaik).hidden = true;
+
+let input = new cloud.Bucket() as "Input Bucket";
 
 class Translators {
   translators: MutMap<inflight (str, str): void>;
@@ -33,7 +36,7 @@ class Translators {
     });
     
     for language in languages {
-      let translator = new t.Translator(fromLanguage: sourceLanguage, toLanguage: language, model: model) as "translator_{language}";
+      let translator = new t.Translator(fromLanguage: sourceLanguage, toLanguage: language, model: model) as "{language} Translator";
       this.translators.set(language, inflight (k, v) => {
         log("translating {k} to {language}...");
         translator.translate(k, v);
@@ -129,14 +132,14 @@ class Tools {
       log("filename: {fileName}");
 
       input.put("{fileName}", c);
-    }) as "translate this";
+    }) as "Translate This";
     
     new cloud.Function(inflight () => {
       for key in input.list() {
         let data = input.get(key);
         translators.translateAll(key, data);  
       }
-    }) as "redrive";    
+    }) as "Redrive";    
   }
 }
 
