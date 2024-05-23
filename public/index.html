@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Translated Documents</title>
+  <style>
+    table {
+      border-collapse: collapse; /* Ensures borders are shared between adjacent cells */
+      width: 100%; /* Optional: Makes the table width 100% of its container */
+    }
+
+    table, th, td {
+      border: 1px solid black; /* You can customize the color and style */
+    }
+
+    th, td {
+      padding: 8px; /* Adjust as needed */
+      text-align: left; /* Adjust as needed */
+    }
+  </style>
+</head>
+<body>
+  <table id="table">
+    <tr id="header">
+
+    </tr>
+  </table>
+
+  <script>
+    async function main() {
+      const response = await fetch("/config.json");
+      const config = await response.json();
+      const baseUrl = config.backend;
+      console.log({baseUrl});
+
+      const docs = await (await fetch(`${baseUrl}/docs`)).json();
+      const langs = await (await fetch(`${baseUrl}/languages`)).json();
+      console.log({ docs, langs });
+
+      const header = document.getElementById("header");
+
+      for (const l of langs) {
+        const th = document.createElement("th");
+        th.innerText = l;
+        header.appendChild(th);
+      }
+
+      for (const doc of docs) {
+        const tr = document.createElement("tr");
+        for (const l of langs) {
+          const td = document.createElement("td");
+          td.innerHTML = `<a href='${baseUrl}/docs/${doc}?language=${l}'>${doc}</a>`;
+          tr.appendChild(td);
+        }
+
+        table.appendChild(tr);
+      }
+
+
+    }
+
+    main();
+
+  </script>
+  
+</body>
+</html>
