@@ -4,6 +4,7 @@ bring openai;
 bring ui;
 bring util;
 bring "./namer.w" as n;
+bring "./translator.w" as t;
 
 let sourceLanguage = "English";
 
@@ -17,54 +18,6 @@ let languages = [
 let modelId = "gpt-4o";
 let oaik = new cloud.Secret(name: "OPENAI_KEY") as "openai_key";
 let model = new openai.OpenAI(apiKeySecret: oaik) as "gpt_4o";
-
-
-struct Job {
-  key: str;
-  data: str;
-}
-
-struct TranslatorProps {
-  fromLanguage: str;
-  toLanguage: str;
-  model: openai.OpenAI;
-}
-
-class Translator {
-  opts: TranslatorProps;
-  model: openai.OpenAI;
-  queue: cloud.Queue;
-  pub output: cloud.Bucket;
-
-  new(opts: TranslatorProps) {
-    this.opts = opts;
-    this.model = opts.model;
-    this.output = new cloud.Bucket();
-    this.queue = new cloud.Queue();
-    this.queue.setConsumer(inflight (message) => {
-      let job = Job.parseJson(message);
-
-      let prompt = {
-        translation_request: {
-          from_language: opts.fromLanguage,
-          to_language: opts.toLanguage,
-          content_to_translate: job.data,
-        },
-      };
-
-      let result = this.model.createCompletion(Json.stringify(prompt), model: modelId);
-      this.output.put(job.key, result);
-      log("translated {job.key} to {this.opts.toLanguage}");
-    });
-
-    nodeof(this).title = "{opts.fromLanguage} => {opts.toLanguage} Translator";
-  }
-
-  pub inflight translate(key: str, data: str) {
-    let job = Job { data: data, key: key };
-    this.queue.push(Json.stringify(job));
-  }
-}
 
 let input = new cloud.Bucket() as "input_bucket";
 
@@ -80,15 +33,14 @@ class Translators {
     });
     
     for language in languages {
-    
-      let t = new Translator(fromLanguage: sourceLanguage, toLanguage: language, model: model) as "translator_{language}";
+      let translator = new t.Translator(fromLanguage: sourceLanguage, toLanguage: language, model: model) as "translator_{language}";
       this.translators.set(language, inflight (k, v) => {
         log("translating {k} to {language}...");
-        t.translate(k, v);
+        translator.translate(k, v);
       });
     
       this.readers.set(language, inflight (k) => {
-        return t.output.get(k);
+        return translator.output.get(k);
       });
     }
   }

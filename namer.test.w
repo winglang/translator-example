@@ -7,7 +7,7 @@ let model = new openai.OpenAI(apiKeySecret: oaik) as "gpt_4o";
 
 let namer = new n.Namer(model: model);
 
-let examples = [
+let fixtures = [
   "this is the content i want to use to create a file name",
   "this is another content i want to use to create a file name",
   "this is a third content i want to use to create a file name",
@@ -17,7 +17,7 @@ let examples = [
 ];
 
 new cloud.Function(inflight () => {
-  for e in examples {
+  for e in fixtures {
     let name = namer.makeFileName(e);
     log(name);
   }
