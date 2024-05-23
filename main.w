@@ -10,7 +10,8 @@ let sourceLanguage = "English";
 
 let languages = [
   "French",
-  "Hebrew"
+  "Hebrew",
+  "Klingon"
 ];
 
 let modelId = "gpt-4o";
