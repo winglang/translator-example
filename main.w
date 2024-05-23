@@ -9,10 +9,7 @@ bring "./translator.w" as t;
 let sourceLanguage = "English";
 
 let languages = [
-  "Hebrew",
-  "Italian",
-  "Chinese",
-  "Klingon",
+  "French"
 ];
 
 let modelId = "gpt-4o";
@@ -139,7 +136,14 @@ class Tools {
         let data = input.get(key);
         translators.translateAll(key, data);  
       }
-    }) as "Redrive";    
+    }) as "Redrive";   
+    
+    new cloud.Function(inflight () => {
+      for k in input.list() {
+        input.delete(k);
+      }
+
+    }) as "Reset";
   }
 }
 
