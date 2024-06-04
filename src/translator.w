@@ -1,6 +1,6 @@
-bring openai;
 bring cloud;
 bring ui;
+bring "./model.w" as m;
 
 struct Job {
   key: str;
@@ -10,12 +10,12 @@ struct Job {
 pub struct TranslatorProps {
   fromLanguage: str;
   toLanguage: str;
-  model: openai.OpenAI;
+  model: m.Model;
 }
 
 pub class Translator {
   opts: TranslatorProps;
-  model: openai.OpenAI;
+  model: m.Model;
   queue: cloud.Queue;
   pub output: cloud.Bucket;
 
@@ -36,7 +36,7 @@ pub class Translator {
         },
       };
 
-      let result = this.model.createCompletion(Json.stringify(prompt), model: "gpt-4o");
+      let result = this.model.openai.createCompletion(Json.stringify(prompt), model: "gpt-4o");
       this.output.put(job.key, result);
       log("Translated {job.key} to {this.opts.toLanguage}");
     });
