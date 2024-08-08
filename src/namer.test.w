@@ -2,7 +2,7 @@ bring "./namer.w" as n;
 bring cloud;
 bring openai;
 
-let oaik = new cloud.Secret(name: "OPENAI_KEY") as "openai_key";
+let oaik = new cloud.Secret(name: "OPENAI_API_KEY") as "openai_key";
 let model = new openai.OpenAI(apiKeySecret: oaik) as "gpt_4o";
 
 let namer = new n.Namer(model: model);
