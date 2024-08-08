@@ -16,7 +16,7 @@ pub class Tools {
     let manager = props.manager;
 
     new cloud.Function(inflight (content) => {
-      let c = content ?? "";
+      let c = content?.asStr() ?? "";
       if c.length == 0 {
         throw "empty request";
       }

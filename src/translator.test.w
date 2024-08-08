@@ -1,13 +1,13 @@
 bring "./translator.w" as t;
+bring "./model.w" as m;
 bring openai;
 bring cloud;
 bring util;
 bring expect;
 
-let oaik = new cloud.Secret(name: "OPENAI_KEY") as "openai_key";
-let model = new openai.OpenAI(apiKeySecret: oaik) as "gpt_4o";
+let model = new m.Model();
 
-let translator = new t.Translator(fromLanguage: "english", toLanguage: "spanish", model: model) as "translator";
+let translator = new t.Translator(fromLanguage: "english", toLanguage: "hebrew", model: model) as "translator";
 
 let fixtures = [
   "this is the content i want to use to create a file name",
